@@ -1,0 +1,392 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>reveal.js</title>
+
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+
+    <!-- Printing and PDF exports -->
+    <script>
+      var link = document.createElement( 'link' );
+link.rel = 'stylesheet';
+link.type = 'text/css';
+link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+document.getElementsByTagName( 'head' )[0].appendChild( link );
+    </script>
+    <style>
+      .self-note{
+        line-height:1px!important;
+        font-size:1px!important;
+        width:100%!important;
+
+      }
+      .slides:first-child{
+      }
+    </style>
+  </head>
+  <body >
+    <div class="reveal">
+      <div class="slides">
+
+        <!-- Intro -->
+        <section>
+          <h1>CloudFusion</h1>
+          <small>(for which I am very, very sorry)</small>
+
+          <aside class="notes" data-markdown >
+            - hi, i'm tad.
+            - it's port man toe
+            - it's something that should never have been created
+          </aside>
+        </section>
+        <section>
+          <h2>About me</h2>
+          I've been at cornell 2.5 years and done some awesome stuff.
+          <section>
+
+          </section>
+          <section data-markdown>
+            <h7>Optimize Cornell.edu for mobile devices</h7>
+          </section>
+          <section>
+            <br/>
+            <br/>
+            <h7> Gitlab evangelist</h7>
+            <br/>
+            <img src="images/glad_we_went_with_gitlab.png" alt="glad we went with gitlab" />
+            <aside class="notes" data-markdown>
+              - from one guy using git to self hosted gitlab
+              - this incident will be logged
+              - and investigated
+              - and you'll have to explain that voice mail to your boss
+            </aside>
+          </section>
+          <section>
+            <small> I might have run `sudo give me permissions dammit` on a live system</small>
+            <aside class="notes" data-markdown>
+              - this incident will be logged
+              - and investigated
+              - and you'll have to explain that voice mail to your boss
+            </aside>
+          </section>
+        </section>
+
+        <section>
+          <section>
+            <aside class="notes" data-markdown>
+              - I work at univcomm
+              - we run cornell.edu, cuinfo, brand center
+              - other sites Around The University.
+              - 4 devs, 2 designers; 0 ops
+              - edu isn't the largest, or most important
+            </aside>
+              
+            <h5>It's ok, I'm from University Communications</h5>
+            <ul style="list-style-type:none">
+              <li>We run www.cornell.edu, cuinfo.cornell.edu </li>
+              <!-- yeah, it's not "valid" html but it'll render "fine" and do what I need it to -->
+              <li><small>nyc.cornell.edu, brand.cornell.edu, apps.univcomm.cornell.edu,<li><small> embanner.univcomm.cornell.edu, visit 365, statements.cornell.edu,
+                      inauguration.cornell.edu, <li><small>schedule.cornelldays.cornell.edu, economicimpact.cornell.edu, ...</small></li></small></li></small></li>
+            </ul>
+          </section>
+
+        </section>
+        <section >
+          <section >
+
+            <aside data-markdown class="notes">
+              - 180,000 r/h high, 30,000 low
+              - 380 r/s high, 0 r/s low
+              - 50k pageviews per day
+              - 3000-4500 per hour during work hours
+              - 1200 peak r/s
+              - 8r/s average per server throughout the day
+            </aside>
+            <h5>How we roll</h5>
+            <img style="margin:0px auto; height:100%!important; width:100%!important;" height="100%" width="100%" alt="One months traffic" src="./images/Selection_110.png" />
+
+          </section>
+          <section data-markdown>
+            ##### Takeaway
+            - 180,000 r/h highs
+            - 30,000 r/h lows
+            - 380 r/s highs
+            - 0 rs/ lows
+            - 50,000 pageviews per day (is that a lot?)
+            - occasional 1200 r/s handled without issue
+          </section>
+        </section>
+
+        <section >
+          <h3>Zero</h3>
+
+          <section data-markdown>
+            | Vhost         | Machines | CPUs | Rams | EC2 size       |
+            | ------------- | -------- | ---- | ---- | -------------- |
+            | cornell.edu   | 4        | 2    | 4GB  | T2.Medium      |
+            | Apps          | 2        | 2    | 8GB  | M4.Large       |
+            | staging/dev   | 2        | 2    | 8GB  | M4.Large       |
+            | media         | 6        | 2    | 4/8GB| ???            |
+
+            <aside class="notes" data-markdown>
+             Plus a few other servers that are less important
+            </aside>
+          </section>
+          <section >
+            <aside class="notes" data-markdown>
+              - our software stack pre-dates dirt
+              - all of this is EOL except apache 2.2
+              - and it will be EOL soon.
+            </aside>
+            <div data-markdown>
+              - Coldfusion 10, update 23 with Java 7
+              - PHP 5.4.40
+              - Node.JS 0.10
+              - Ruby 1.9.3
+              - Apache 2.2
+            </div>
+          </section>
+          <section data-markdown>
+            - Machines mount webroot on NFS - "instances"
+            - Apache confs are not shared across machines
+            - File access is through webdav
+              - Changes are logged ++
+              - webdav is unreliable --
+            - No Ops level access; ssh only on dev
+              - no full access to configs
+            - so all updates go through webdav
+              - config changes must be made on all servers
+
+          </section>
+        </section>
+        <section>
+          <h3>Backstory</h3>
+          <section >
+          <aside class="notes" data-markdown>
+            - this talk is zero to autoscaling
+            - if you don't have good process or strong ops skill, it's going to take work.
+            - this is truely zero to autoscaling
+          </aside>
+            <div data-markdown>
+            - Day one - one guy sorta using git
+            - Month 6 - Start working with CIT to figure out a way to deploy using git
+              - This was probably our tipping point in saying we _actually_ use git
+            - Month 12 (May 2016) - running gitlab on rackspace
+            </div>
+          </section>
+          <section data-markdown>
+            - Month 14 (July 2016) -  enrolled in AWS
+            - Month 17 (Nov 2016) - First lambda function in prod
+              - Thanks AWS hackathon
+          </section>
+          <section data-markdown>
+            It's about month 27
+            - Summer saw inauguration, nyc, and many other projects
+            - our portfolio is too large for us to rewrite at once
+            - There's been no official talk of upgrades
+
+          </section>
+          <section>
+            <img style="" alt="Migration is coming" src="./images/migrationiscoming.jpg" />
+
+          </section>
+        </section>
+        <section>
+          <h5>Failures</h5>
+          <section>
+          <aside class="notes" data-markdown>
+            - i think it's important to talk about failure as well as success
+            - but time
+            - https://aws.amazon.com/message/41926/ feb 2017
+          </aside>
+          This is not a recommendation, but our experience
+          <ul>
+            <li>S3 static site hosting</li>
+            <li>Ansible for development servers</li>
+            <li>Hand-crafted, artisinal servers</li>
+          </ul>
+          </section>
+
+          <section>
+            <h5>Tomcat</h5>
+            <ul>
+              <li>I hate Coldfusion.  Coldfusion is Java.  Can I turn Coldfusion apps into Java apps and stop thinking about Coldfusion?
+                <ul>
+                  <small>
+                    <li>(PS I also hate Java)</li>
+                  </small>
+                </ul>
+              </li>
+              <li>Tomcat runs WAR/EAR; Coldfusion can make WAR or EAR.  So, you export, and slam it into a Tomcat server and...</li>
+            </ul>
+
+          </section>
+
+          <section data-markdown>
+            ###### It doesn't start.
+            - ColdFusion uses modified tomcat for Search Engine Safe URLS
+            - SES breaks tomcat
+          </section>
+          <section data-markdown>
+            ###### Winning with Tomcat
+            _You don't win with tomcat, you just lose a little less_
+            - Coldfusion just Java and modified Tomcat
+            - WARs use web.xml for mapping.  You can disable SES and other servlets here.
+              - Less pointless app, less attack surface
+          </section>
+          <section data-markdown>
+            ###### Winning with Tomcat (continued)
+            - CfClasspath != java classpath
+            - CfClasspath adds ~50MB to WAR
+            - Server config stored in WAR; swappable at WAR build
+            - WAR will contain decryptable secrets and the decryption key
+            - If the negatives are acceptable, you can run Coldfusion on stock tomcat
+          </section>
+          <section data-markdown>
+            - EB's tomcat runs apache 2.2.32 as a proxy. In theory, you could use EB extensions to add CUWA.  I have not investigated this but I definitely will.
+            - I also tried Ansible, but personal preference made me go back to Docker
+            - If you can run without CUWA (maybe shibboleth) or complex infrastructure, look at AWS managed tomcat on Elastic Beanstalk.
+          </section>
+        </section>
+        <section>
+          <aside class="notes" data-markdown>
+            we were never able to automate deployment on CIT servers
+          </aside>
+          <section data-markdown>
+            ##### CloudFusion
+
+            - We never succeeded using git to deploy on CIT servers
+            - Perfect is the enemy of good
+              - duplicate what we have and improve it
+            - Build a system that can run our software, even if not ideal
+              - gain insight so we can move forward
+              - fail loudly so there are no silent errors
+            - Target: CF10 update 23, JVM 8, Apache 2.4 and CUWA.
+            - Automate and monitor
+          </section>
+          <section data-markdown>
+            <h5>Layers</h5>
+            - Docker containers
+            - DTR
+            - Elastic Beanstalk
+            - Gitlab
+            - CI/CD
+            - ???
+            - Profit
+            - Testing?????!?
+          </section>
+          <section >
+            <h5>Docker</h5>
+
+            <ul>
+              <li>Single container ColdFusion</li>
+              <li>Phusion BaseImage &gt; Apache2.4/CUWA &gt; Coldfusion/Postfix</li>
+              <li>Secrets stored in encrypted s3; fetched on container start</li>
+              <li>Containers can run without secrets too.</li>
+            </ul>
+
+            Successful builds are pushed to DTR.  
+
+            No testing for the container build process (yet).
+            <aside class="notes" >
+            - Apache2.4+CUWA+Postfix
+            - Coldfusion 10+Java 8
+            </aside>
+
+          </section>
+          <section data-markdown>
+            ###### Elastic Beanstalk
+
+            - Mounts NFS for media volume (required by our software)
+            - Sets environment for docker container(s)
+            - Automatically provides AWS Credentials to container.
+            - Volumes for docker containers(s)
+            - Mockable on dev machines
+            - Monitoring
+            - Alerting
+            - Blue/green deployments are possible
+          </section>
+          <section data-markdown>
+            ###### Gitlab
+            - Gitlab is central to the process
+            - Container CI pushes to DTR
+            - Elastic Beanstalk deploys pull from DTR
+            - Pushes to Application repositories deploy to EB
+            - Process could be better, but we're not in prod yet.
+
+          </section>
+          <section data-markdown>
+            ###### Testing
+
+            BAHAHAHAHAHHAHAHAHAHAHA
+
+            Oh you were serious.
+
+          </section>
+          <section data-markdown>
+            ###### Testing
+
+            - Automating processes without automating testing is insanity
+            - Fortunately our apps fail with an appropriate status
+            - Test recorder + site scraper + phantomjs = poor mans test suite
+
+          </section>
+          <section data-markdown>
+            ##### Still left to do
+            - Logging
+              - We're working with CIT to get a splunk instance in AWS
+            - Databases
+              - There's a noticable lag connecting to on-premise databases from AWS
+                - Plus, you pay for it
+          </section>
+          <section data-markdown>
+            ##### Still left to do (continued)
+            - Upgrade coldfusion
+            - If we actually have working tests, we can more quickly test new versions of coldfusion, or even Lucee/Railo
+            - Production SSL Certs
+            - Production Kerberos Keytabs
+          </section>
+        </section>
+
+        </section>
+        <section data-markdown>
+          ##### Conclusion
+          - We're still a way out from using it
+          - There's guaranteed to be more issues
+          - But we're getting there
+        </section>
+        <section data-markdown>
+          ##### EOF
+          - Tad Merchant
+          - github.com/ezmac
+          - wm284@cornell.edu
+        </section>
+
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+
+    <script>
+      // More info about config & dependencies:
+      // - https://github.com/hakimel/reveal.js#configuration
+      // - https://github.com/hakimel/reveal.js#dependencies
+      Reveal.initialize({
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/notes/notes.js', async: true },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+        ]
+      });
+    </script>
+  </body>
+</html>
